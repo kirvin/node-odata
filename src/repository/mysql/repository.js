@@ -5,25 +5,31 @@ import MysqlModel from './model';
 export default class {
   constructor(uri, driverOptions) {
     this._driverOptions = driverOptions;
-    this._connection = this.createConnection;
+    this._connectionUri = uri;
+    this._driverOptions = driverOptions;
   }
 
   model(name) {
     return new MysqlModel(name);
   }
 
-  createConnection(_uriString, _options) {
-    const _url = Url.parse(_uriString, true, true);
-    console.info(_url.query);
-    var mysqlConnection = null;
-    Mysql.createConnection(
+  query(sql) {
+    return this.createConnection()
+      .then((conn) => {
+        return conn.query(sql);
+      })
+      .then((rows) => {
+        return rows;
+      })
+  }
+
+  createConnection() {
+    const _url = Url.parse(this._connectionUri, true, true);
+    return Mysql.createConnection(
       { host: _url.host,
         user: _url.query.username,
         password: _url.query.password,
         database: _url.pathname.substring(1) }
-    ).then(function(conn) {
-      mysqlConnection = conn;
-    });
-    return mysqlConnection;
+    );
   }
 }

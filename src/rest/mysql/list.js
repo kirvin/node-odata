@@ -4,18 +4,13 @@ function _countQuery(model, { count, filter }) {
       .then((rows) => {
         console.log(rows);
         resolve({ '@odata.count': 0 })
-      }).catch(reject);
+      }).catch((err) => reject({ status: 500, text: err }));
   });
 }
 
 function _dataQuery(model, { count, filter }) {
-  return new Promise((resolve, reject) => {
-    model.list(filter)
-      .then((rows) => {
-        console.log(`ROWS: ${rows}`);
-        resolve({ value: rows })
-      }).catch((err) => reject({ status: 500, text: err }))
-  });
+  return model.list(filter)
+    .catch((err) => reject({ status: 500, text: err }))
 }
 
 export default (req, RepositoryModel, options) => new Promise((resolve, reject) => {
@@ -34,7 +29,6 @@ export default (req, RepositoryModel, options) => new Promise((resolve, reject) 
     _countQuery(RepositoryModel, params),
     _dataQuery(RepositoryModel, params, options),
   ]).then((results) => {
-    console.log(results);
     const entity = results.reduce((current, next) => ({ ...current, ...next }));
     resolve({ entity });
   }).catch((err) => reject({ status: 500, text: err }));

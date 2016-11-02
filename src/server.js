@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import MysqlRepository from './repository/mysql';
+import MysqlRepository from './repository/mysql/repository';
 import createExpress from './express';
 import Resource from './ODataResource';
 
@@ -148,7 +148,7 @@ class Server {
           try {
             this._db = new MysqlRepository(val);
           } catch(err) {
-            console.error(`Failed to connect to mysql database @ ${_url.host}: ${err}`);
+            console.error(`Failed to connect to mysql database @ ${val}: ${err}`);
             process.exit();
           }
         } else {
