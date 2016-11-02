@@ -1,10 +1,10 @@
 import http from 'http';
 import { Router } from 'express';
 import list from './list';
-import post from './post';
-import put from './put';
-import del from './delete';
-import patch from './patch';
+// import post from './post';
+// import put from './put';
+// import del from './delete';
+// import patch from './patch';
 import get from './get';
 
 function authorizePipe(req, res, auth) {
@@ -53,13 +53,13 @@ function errorPipe(req, res, err) {
   });
 }
 
-function addRestRoutes(router, routes, mongooseModel, options) {
+function addRestRoutes(router, routes, repositoryModel, options) {
   return routes.map((route) => {
     const { method, url, ctrl, hook } = route;
     return router[method](url, (req, res) => {
       authorizePipe(req, res, hook.auth)
       .then(() => beforePipe(req, res, hook.before))
-      .then(() => ctrl(req, mongooseModel, options))
+      .then(() => ctrl(req, repositoryModel, options))
       .then((result) => respondPipe(req, res, result || {}))
       .then((data) => afterPipe(req, res, hook.after, data))
       .catch((err) => errorPipe(req, res, err));
@@ -78,35 +78,35 @@ function addActionRoutes(router, resourceURL, actions) {
   });
 }
 
-const getRouter = (mongooseModel, { url, hooks, actions, options }) => {
+const getRouter = (repositoryModel, { url, hooks, actions, options }) => {
   const resourceListURL = `/${url}`;
   const resourceURL = `${resourceListURL}\\(:id\\)`;
 
   const routes = [
-    {
-      method: 'post',
-      url: resourceListURL,
-      ctrl: post,
-      hook: hooks.post,
-    },
-    {
-      method: 'put',
-      url: resourceURL,
-      ctrl: put,
-      hook: hooks.put,
-    },
-    {
-      method: 'patch',
-      url: resourceURL,
-      controller: patch,
-      config: hooks.patch,
-    },
-    {
-      method: 'delete',
-      url: resourceURL,
-      ctrl: del,
-      hook: hooks.delete,
-    },
+    // {
+    //   method: 'post',
+    //   url: resourceListURL,
+    //   ctrl: post,
+    //   hook: hooks.post,
+    // },
+    // {
+    //   method: 'put',
+    //   url: resourceURL,
+    //   ctrl: put,
+    //   hook: hooks.put,
+    // },
+    // {
+    //   method: 'patch',
+    //   url: resourceURL,
+    //   controller: patch,
+    //   config: hooks.patch,
+    // },
+    // {
+    //   method: 'delete',
+    //   url: resourceURL,
+    //   ctrl: del,
+    //   hook: hooks.delete,
+    // },
     {
       method: 'get',
       url: resourceURL,
@@ -124,7 +124,7 @@ const getRouter = (mongooseModel, { url, hooks, actions, options }) => {
   /*eslint-disable */
   const router = Router();
   /*eslint-enable */
-  addRestRoutes(router, routes, mongooseModel, options);
+  addRestRoutes(router, routes, repositoryModel, options);
   addActionRoutes(router, resourceURL, actions);
   return router;
 };

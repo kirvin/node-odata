@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import MysqlRepository from './repository/mysql';
 import createExpress from './express';
 import Resource from './ODataResource';
 
@@ -17,6 +18,7 @@ class Server {
       maxSkip: 10000,
       orderby: undefined,
     };
+    this._adapter = "mongodb";
     this.defaultConfiguration(db, prefix);
 
     // TODO: Infact, resources is a mongooseModel instance, origin name is repositories.
@@ -37,7 +39,7 @@ class Server {
     if (model === undefined) {
       return this._resources.name;
     }
-    const resource = new Resource(name, model);
+    const resource = new Resource(name, model, this._adapter);
     this._resources.push(resource);
     return resource;
   }
@@ -126,14 +128,33 @@ class Server {
 
   set(key, val) {
     switch (key) {
+      case 'adapter': {
+        this._adapter = val;
+        break;
+      }
       case 'db': {
-        const options = { server: { reconnectTries: Number.MAX_VALUE } };
-        this._db = mongoose.createConnection(val, options, (err) => {
-          if (err) {
-            console.error('Failed to connect to database on startup.');
+        if (val.startsWith('mongodb://')) {
+          console.info('Setting up Mongodb repository');
+          const options = { server: { reconnectTries: Number.MAX_VALUE } };
+          this._db = mongoose.createConnection(val, options, (err) => {
+            if (err) {
+              console.error('Failed to connect to database on startup.');
+              process.exit();
+            }
+          });
+        } else if (val.startsWith('mysql://')) {
+          console.info('Setting up Mysql repository');
+          this._adapter = 'mysql';
+          try {
+            this._db = new MysqlRepository(val);
+          } catch(err) {
+            console.error(`Failed to connect to mysql database @ ${_url.host}: ${err}`);
             process.exit();
           }
-        });
+        } else {
+          console.error(`Unsupported database scheme '${val.split(':')[0]}'!`);
+          process.exit();
+        }
 
         this._settings[key] = val;
         break;

@@ -1,9 +1,9 @@
-import countParser from '../parser/countParser';
-import filterParser from '../parser/filterParser';
-import orderbyParser from '../parser/orderbyParser';
-import skipParser from '../parser/skipParser';
-import topParser from '../parser/topParser';
-import selectParser from '../parser/selectParser';
+import countParser from '../../parser/countParser';
+import filterParser from '../../parser/filterParser';
+import orderbyParser from '../../parser/orderbyParser';
+import skipParser from '../../parser/skipParser';
+import topParser from '../../parser/topParser';
+import selectParser from '../../parser/selectParser';
 
 function _countQuery(model, { count, filter }) {
   return new Promise((resolve, reject) => {
@@ -33,7 +33,7 @@ function _dataQuery(model, { filter, orderby, skip, top, select }, options) {
   });
 }
 
-export default (req, MongooseModel, options) => new Promise((resolve, reject) => {
+export default (req, RepositoryModel, options) => new Promise((resolve, reject) => {
   const params = {
     count: req.query.$count,
     filter: req.query.$filter,
@@ -46,8 +46,8 @@ export default (req, MongooseModel, options) => new Promise((resolve, reject) =>
   };
 
   Promise.all([
-    _countQuery(MongooseModel, params),
-    _dataQuery(MongooseModel, params, options),
+    _countQuery(RepositoryModel, params),
+    _dataQuery(RepositoryModel, params, options),
   ]).then((results) => {
     const entity = results.reduce((current, next) => ({ ...current, ...next }));
     resolve({ entity });

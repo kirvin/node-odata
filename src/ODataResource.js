@@ -1,5 +1,7 @@
-import model from './model';
-import rest from './rest';
+import mongodbModel from './model';
+import mysqlRegistry from './repository/mysql/registry';
+import mongodbRest from './rest/mongoose';
+import mysqlRest from './rest/mysql';
 import { min } from './utils';
 
 function hook(resource, pos, fn) {
@@ -25,8 +27,9 @@ function hook(resource, pos, fn) {
 }
 
 export default class {
-  constructor(name, userModel) {
+  constructor(name, userModel, adapter) {
     this._name = name;
+    this._adapter = adapter;
     this._url = name;
     this._model = userModel;
     this._hooks = {
@@ -142,7 +145,13 @@ export default class {
                       + 'it can only be allowed to exist in the beginning.');
     }
 
-    const mongooseModel = model.register(db, this._url, this._model);
+    var repositoryModel = null;
+    if (this._adapter == "mongodb") {
+      repositoryModel = mongodbModel.register(db, this._url, this._model);
+    } else {
+      console.info("registering mysql model");
+      repositoryModel = mysqlRegistry.register(db, this._url, this._model);
+    }
 
     const params = {
       url: this._url,
@@ -155,6 +164,10 @@ export default class {
       actions: this._actions,
     };
 
-    return rest.getRouter(mongooseModel, params);
+    if (this._adapter == "mongodb") {
+      return mongodbRest.getRouter(repositoryModel, params);
+    } else {
+      return mysqlRest.getRouter(repositoryModel, params);
+    }
   }
 }
